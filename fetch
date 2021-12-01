@@ -1,0 +1,147 @@
+#!/usr/bin/env ruby
+
+require 'httparty'
+require 'nokogiri'
+require 'pry'
+require 'pry-nav'
+
+@year, @day, @override = ARGV
+raise 'put in a number dumbass' unless @year && @day
+
+@cookie = File.read('cookie')
+
+def build_text
+  <<~RUBY.freeze
+    require 'pry'
+    require 'pry-nav'
+    require 'ostruct'
+    require 'set'
+    
+    #{fetch_body}
+   
+    @data = DATA.each_line.map(&:chomp)
+   
+    ex1.each_line.map(&:chomp) do |line|
+    end
+
+    # part2
+
+    __END__
+    #{fetch_input}
+  RUBY
+end
+
+def fetch_input
+  base_url = "https://adventofcode.com/#{@year}/day/#{@day}/input"
+  HTTParty.get(base_url, {
+                 headers: {
+                   cookie: "session=#{@cookie}"
+                 }
+               })
+end
+
+def fetch_page
+  base_url = "https://adventofcode.com/#{@year}/day/#{@day}"
+  content = HTTParty.get(base_url, {
+                           headers: {
+                             cookie: "session=#{@cookie}"
+                           }
+                         })
+  if content.body =~ /Please don't repeatedly/
+    puts 'Still Waiting...'
+    exit
+  end
+  @content ||= content.body
+end
+
+def fetch_title
+  title = Nokogiri::HTML(@content).css('article h2').first.text
+  filename = title.split(':').last[0..-4]
+  filename.strip.split(' ').map(&:downcase).unshift("#{@year}/#{@day}").join('_') + '.rb'
+end
+
+def fetch_body
+  body = Nokogiri::HTML(@content).css('.day-desc').first.children.map { |n| [n.name, n.text] }
+
+  process_section(body)
+end
+
+def process_section(section)
+  # section is Array[name, text]
+  precount = 0
+  res = section.map do |type, text|
+    if type == 'p'
+      [
+        '# ',
+        text.split(/\s/).each_with_object([[]]) do |t, a|
+          if a[-1].join(' ').length > 80
+            a << [t]
+          else
+            a.last << t
+          end
+        end.map { |l| l.join(' ') }.join("\n# ")
+      ]
+    elsif type == 'text'
+      nil
+    elsif type == 'h2'
+      ['# ', text]
+    elsif type == 'pre'
+      precount += 1
+      ["ex#{precount} = <<~T\n", text.split("\n").map { |l| "  #{l}" }.join("\n"), "\nT"]
+    end
+  end
+  res.compact.map(&:join).join("\n#\n")
+end
+
+def write_file
+  File.open(fetch_title, 'w+') do |file|
+    file.write(build_text)
+  rescue StandardError => e
+    file.write('something went wrong')
+    file.write(e)
+  ensure
+    file.close
+  end
+end
+
+def insert_part_2
+  body = Nokogiri::HTML(@content).css('.day-desc').last.children.map { |n| [n.name, n.text] }
+  text = process_section(body)
+  existing = File.read(fetch_title)
+  newtext = existing.gsub('# part2', text)
+  File.open(fetch_title, 'wb') do |file|
+    file.write(newtext)
+  rescue StandardError => e
+    puts "FUCK, #{e}"
+  ensure
+    file.close
+  end
+end
+
+def create_file
+  fetch_page
+  body = Nokogiri::HTML(@content).css('.day-desc')
+  if body.count == 1
+    if File.exist?(fetch_title) && @override == '-f'
+      puts 'file already exists, youre still on part 1'
+      exit
+    else
+      write_file
+      puts 'OK GO!'
+      `code #{fetch_title}`
+    end
+  else
+    if File.exist?(fetch_title)
+      puts 'inserting part 2 now...'
+      insert_part_2
+      `code #{fetch_title}`
+    else
+      puts 'youve already completed this one, but sure...'
+      write_file
+      insert_part_2
+      `code #{fetch_title}`
+    end
+  end
+end
+
+create_file
