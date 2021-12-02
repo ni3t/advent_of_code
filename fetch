@@ -18,13 +18,16 @@ def build_text
     require 'set'
     
     #{fetch_body}
+    
+    # part2
    
     @data = DATA.each_line.map(&:chomp)
+    @ex1 = ex1.each_line.map(&:chomp)
    
-    ex1.each_line.map(&:chomp) do |line|
+    @ex1.each_line.map(&:chomp).each do |line|
+      _, *args = line.match(//).to_a
+      _ = *args
     end
-
-    # part2
 
     __END__
     #{fetch_input}
@@ -88,6 +91,8 @@ def process_section(section)
     elsif type == 'pre'
       precount += 1
       ["ex#{precount} = <<~T\n", text.split("\n").map { |l| "  #{l}" }.join("\n"), "\nT"]
+    elsif type == 'ul'
+      [text.split("\n").tap(&:shift).map { |l| "# - #{l}" }.join("\n")]
     end
   end
   res.compact.map(&:join).join("\n#\n")
