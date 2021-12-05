@@ -36,11 +36,11 @@ end
 
 def fetch_input
   base_url = "https://adventofcode.com/#{@year}/day/#{@day}/input"
-  HTTParty.get(base_url, {
-                 headers: {
-                   cookie: "session=#{@cookie}"
-                 }
-               })
+  res = HTTParty.get(base_url, {
+                       headers: {
+                         cookie: "session=#{@cookie}"
+                       }
+                     })
 end
 
 def fetch_page
