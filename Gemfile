@@ -2,6 +2,7 @@
 
 source 'https://rubygems.org'
 
+gem 'facets'
 gem 'httparty'
 gem 'pry'
 gem 'pry-nav'
