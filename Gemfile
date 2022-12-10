@@ -2,6 +2,7 @@
 
 source 'https://rubygems.org'
 
+gem 'awesome_print'
 gem 'facets'
 gem 'httparty'
 gem 'pry'

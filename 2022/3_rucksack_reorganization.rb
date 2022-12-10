@@ -112,12 +112,12 @@ end
 input = DATA.each_line.map(&:chomp).reject(&:empty?)
 
 r1 = input.sum do |line|
-  get_value(line.chars.each_slice(line.length/2).to_a.reduce(&:&)[0])
+  get_value(line.chars.each_slice(line.length/2).reduce(&:&)[0])
 end
 
-r2 = input.each_slice(3).map do |trip|
+r2 = input.each_slice(3).sum do |trip|
   get_value(trip.map(&:chars).reduce(&:&)[0])
-end.sum
+end
 
 puts r1
 puts r2
