@@ -21,10 +21,10 @@ def build_text
     
     # part2
    
-    @data = DATA.each_line.map(&:chomp)
-    @ex1 = ex1.each_line.map(&:chomp)
+    @data = DATA.each_line.map(&:chomp).map(&:freeze).freeze
+    @ex1 = ex1.each_line.map(&:chomp).map(&:freeze).freeze
    
-    @ex1.each_line.map(&:chomp).each do |line|
+    @ex1.each do |line|
       _, *args = line.match(//).to_a
       _ = *args
     end
