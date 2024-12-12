@@ -77,38 +77,30 @@ T
 
 # part2
 
-data = "2 54 992917 5270417 2514 28561 0 990"
-stones = data.split
-
+stones = "2 54 992917 5270417 2514 28561 0 990".split
 MAP = {}
 
-def how_many_eventually(x, iters)
+def tick(x, i)
   x = x.to_i.to_s
-  return MAP[[x,iters]] if MAP[[x,iters]]
-  if iters == 0
+  return MAP[[x,i]] if MAP[[x,i]]
+  if i == 0
     1
-  elsif x.to_i == 0
-    res = how_many_eventually("1", iters - 1)
-    MAP[[x,iters]] = res
-    res
+  elsif x == "0"
+    MAP[[x,i]] = tick("1", i - 1)
   elsif x.length % 2 == 0
     a = x[0..x.length/2-1]
     b = x[x.length/2..-1]
-    res = [
-      how_many_eventually(a, iters - 1),
-      how_many_eventually(b, iters - 1)
-    ]
-    MAP[[x,iters]] = res.flatten.sum
-    res.flatten.sum
+    MAP[[x,i]] = [
+      tick(a, i - 1),
+      tick(b, i - 1)
+    ].sum
   else
-    res = how_many_eventually((x.to_i * 2024).to_s, iters - 1)
-    MAP[[x,iters]] = res
-    res
+    MAP[[x,i]] = tick((x.to_i * 2024).to_s, i - 1)
   end
 end
 
-puts stones.map {|s| how_many_eventually(s, 25)}.flatten.sum
-puts stones.map {|s| how_many_eventually(s, 75)}.flatten.sum
+puts stones.sum {|s| tick(s, 25)}
+puts stones.sum {|s| tick(s, 75)}
 
 __END__
 2 54 992917 5270417 2514 28561 0 990
